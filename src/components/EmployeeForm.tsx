@@ -23,10 +23,19 @@ export default function EmployeeForm({ refresh }: { refresh: () => void }) {
       refresh();
       setForm(initialState);
     } catch (err: any) {
-      // FastAPI error message
-      const message =
-        err?.response?.data?.detail || "Something went wrong";
-      setError(message);
+        let message = "Something went wrong";
+
+  if (err.response?.status === 422) {
+    // FastAPI validation error
+    const errors = err.response.data.detail;
+    message = errors
+      .map((e: any) => `${e.loc[e.loc.length - 1]}: invalid value`)
+      .join(", ");
+  } else if (err.response?.data?.detail) {
+    message = err.response.data.detail;
+  }
+
+  setError(message);
     } finally {
       setLoading(false);
     }

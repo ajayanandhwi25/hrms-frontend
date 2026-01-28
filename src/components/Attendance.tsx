@@ -20,8 +20,18 @@ export default function Attendance() {
       alert("Attendance marked successfully");
       setData({ employee_id: "", date: "", status: "Present" });
     } catch (err: any) {
-      const message =
-        err?.response?.data?.detail || "Failed to mark attendance";
+      let message = "Something went wrong";
+
+      if (err.response?.status === 422) {
+        // FastAPI validation error
+        const errors = err.response.data.detail;
+        message = errors
+          .map((e: any) => `${e.loc[e.loc.length - 1]}: invalid value`)
+          .join(", ");
+      } else if (err.response?.data?.detail) {
+        message = err.response.data.detail;
+      }
+
       setError(message);
     } finally {
       setLoading(false);
