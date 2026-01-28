@@ -1,33 +1,30 @@
 import { useEffect, useState } from "react";
+import Layout from "./components/Layout";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
 import Attendance from "./components/Attendance";
-import { Employee } from "./types";
 import { api } from "./Api/api";
+import { Employee } from "./types";
+import AttendanceList from "./components/AttendanceList";
 
 export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const loadEmployees = async () => {
-    const res = await api.get<Employee[]>("/employees");
+  const load = async () => {
+    const res = await api.get("/employees");
     setEmployees(res.data);
-    setLoading(false);
   };
 
   useEffect(() => {
-    loadEmployees();
+    load();
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>HRMS Lite</h1>
-
-      <EmployeeForm refresh={loadEmployees} />
-
-      {loading ? <p>Loading...</p> : <EmployeeList employees={employees} refresh={loadEmployees} />}
-
+    <Layout>
+      <EmployeeForm refresh={load} />
+      <EmployeeList employees={employees} refresh={load} />
       <Attendance />
-    </div>
+      <AttendanceList />
+    </Layout>
   );
 }

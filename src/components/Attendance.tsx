@@ -1,51 +1,83 @@
 import { useState } from "react";
-import { AttendancePayload } from "../types";
 import { api } from "../Api/api";
 
-const initialState: AttendancePayload = {
-  employee_id: "",
-  date: "",
-  status: "Present",
-};
-
 export default function Attendance() {
-  const [data, setData] = useState<AttendancePayload>(initialState);
+  const [data, setData] = useState({
+    employee_id: "",
+    date: "",
+    status: "Present",
+  });
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const submit = async () => {
+    setError(null);
+    setLoading(true);
+
     try {
       await api.post("/attendance", data);
-      alert("Attendance marked");
-      setData(initialState);
+      alert("Attendance marked successfully");
+      setData({ employee_id: "", date: "", status: "Present" });
     } catch (err: any) {
-      alert(err.response?.data?.detail || "Error marking attendance");
+      const message =
+        err?.response?.data?.detail || "Failed to mark attendance";
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h3>Mark Attendance</h3>
+    <div className="card">
+      <h2 className="section-title">Mark Attendance</h2>
 
-      <input
-        placeholder="Employee ID"
-        value={data.employee_id}
-        onChange={(e) => setData({ ...data, employee_id: e.target.value })}
-      />
+      {/* ERROR POPUP */}
+      {error && (
+        <div className="mb-4 rounded-md border border-red-500 bg-red-900/40 px-4 py-2 text-red-300">
+          {error}
+        </div>
+      )}
 
-      <input
-        type="date"
-        value={data.date}
-        onChange={(e) => setData({ ...data, date: e.target.value })}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input
+          className="input"
+          placeholder="Employee ID"
+          value={data.employee_id}
+          onChange={(e) =>
+            setData({ ...data, employee_id: e.target.value })
+          }
+        />
 
-      <select
-        value={data.status}
-        onChange={(e) => setData({ ...data, status: e.target.value as "Present" | "Absent" })}
+        <input
+          type="date"
+          className="input"
+          value={data.date}
+          onChange={(e) =>
+            setData({ ...data, date: e.target.value })
+          }
+        />
+
+        <select
+          className="input"
+          value={data.status}
+          onChange={(e) =>
+            setData({ ...data, status: e.target.value })
+          }
+        >
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+        </select>
+      </div>
+
+      <button
+        type="button"
+        onClick={submit}
+        disabled={loading}
+        className="btn-primary mt-4"
       >
-        <option value="Present">Present</option>
-        <option value="Absent">Absent</option>
-      </select>
-
-      <button onClick={submit}>Submit</button>
+        {loading ? "Submitting..." : "Submit"}
+      </button>
     </div>
   );
 }
